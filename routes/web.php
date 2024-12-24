@@ -2,6 +2,7 @@
 
 use App\Events\DrawingEvent;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CanvasController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -26,3 +27,5 @@ Route::post( '/update-drawing', function ( Illuminate\Http\Request $request ) {
 
     return response()->json(['status' => 'Drawing updated successfully.']);
 });
+
+Route::post('/join-panel', [ CanvasController::class, 'joinCanvas' ] );
