@@ -34,16 +34,6 @@ export default {
             brushWidth: 5,
         };
     },
-    computed: {
-        ...mapState(['drawingData']),
-    },
-    watch: {
-        drawingData(newData) {
-            if (newData) {
-                this.handleDrawingEvent(newData);
-            }
-        },
-    },
     mounted() {
         this.canvas = new fabric.Canvas('drawingCanvas');
         this.canvas.isDrawingMode = true;
@@ -60,12 +50,8 @@ export default {
             this.sendCanvasUpdate(object);
         });
 
-        if (this.drawingData) {
-            this.handleDrawingEvent(this.drawingData);
-        }
-
         Echo.channel('drawing').listen('DrawingEvent', (event) => {
-            if (event.origin !== this.clientId) { 
+            if (event.origin != this.clientId) {
                 this.handleDrawingEvent(event);
             }
         });
@@ -77,11 +63,6 @@ export default {
         handleDrawingEvent(event) {
             console.log('event received');
             this.setTool(event.tool);
-        },
-        addTool(tool) {
-            axios.post('/change-tool', { tool }).then(() => {
-                console.log('Sent to backend.');
-            });
         },
         sendCanvasUpdate(object) {
             const data = {
@@ -110,39 +91,40 @@ export default {
         setTool(tool) {
             this.currentTool = tool;
 
+            this.canvas.isDrawingMode = false;
+            this.canvas.selection = true;
+
             if (tool === 'text') {
-                this.canvas.isDrawingMode = false;
-                this.canvas.selection = true;
-                this.addText();
+                let data = {
+                    left: 50,
+                    top: 50,
+                    width: 200,
+                    fontSize: 20
+                };
+                this.addText(data);
             } else if (tool === 'rectangle') {
-                this.canvas.isDrawingMode = false;
-                this.canvas.selection = true;
-                this.addRectangle();
+                let data = {
+                    left: 100,
+                    top: 50,
+                    fill: 'yellow',
+                    width: 200,
+                    height: 100,
+                    objectCaching: false,
+                    stroke: this.brushColor,
+                    strokeWidth: 4,
+                    hasBorders: true,
+                    hasControls: true,
+                };
+                this.addRectangle(data);
             }
         },
-        addText() {
-            const text = new fabric.Textbox('Type here!', {
-                left: 50,
-                top: 50,
-                width: 200,
-                fontSize: 20
-            });
+        addText(data) {
+            const text = new fabric.Textbox('Type here!', data);
             this.canvas.add(text);
             this.canvas.setActiveObject(text);
         },
-        addRectangle() {
-            const rect = new fabric.Rect({
-                left: 100,
-                top: 50,
-                fill: 'yellow',
-                width: 200,
-                height: 100,
-                objectCaching: false,
-                stroke: this.brushColor,
-                strokeWidth: 4,
-                hasBorders: true,
-                hasControls: true,
-            });
+        addRectangle(data) {
+            const rect = new fabric.Rect(data);
 
             this.canvas.add(rect);
             this.canvas.setActiveObject(rect);
