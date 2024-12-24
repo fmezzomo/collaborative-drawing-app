@@ -52,6 +52,10 @@ export default {
                 this.canvas.selection = true;
                 this.addRectangle();
             }
+
+            axios.post('/change-tool', { tool }).then(() => {
+                console.log('Sent to backend.');
+            });
         },
         addText() {
             const text = new fabric.Textbox('Type here!', {
