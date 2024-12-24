@@ -18,6 +18,7 @@
 
 <script>
 import * as fabric from 'fabric';
+import { mapState } from 'vuex';
 
 function updateCanvas(data) {
     const canvas = new fabric.Canvas('drawingCanvas');
@@ -33,13 +34,31 @@ export default {
             brushWidth: 5,
         };
     },
+    computed: {
+        ...mapState(['drawingData']),
+    },
+    watch: {
+        drawingData(newData) {
+        if (newData) {
+            this.handleDrawingEvent(newData);
+        }
+        },
+    },
     mounted() {
         this.canvas = new fabric.Canvas('drawingCanvas');
         this.canvas.isDrawingMode = true;
 
         this.canvas.selection = true;
+
+        if (this.drawingData) {
+            this.handleDrawingEvent(this.drawingData);
+        }
     },
     methods: {
+        handleDrawingEvent(event) {
+            console.log('event received');
+            console.table(event);
+        },
         setTool(tool) {
             this.currentTool = tool;
 

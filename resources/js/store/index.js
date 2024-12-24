@@ -5,6 +5,7 @@ const store = createStore({
     return {
       canvasHistory: [],
       undoHistory: [],
+      drawingData: null,
     };
   },
   mutations: {
@@ -29,10 +30,17 @@ const store = createStore({
         state.canvasHistory.push(undo);
       }
     },
+
+    setDrawingData(state, data) {
+      state.drawingData = data;
+    },
   },
   actions: {
     updateCanvas({ commit }, data) {
       commit('addToHistory', data);
+    },
+    updateDrawingData({ commit }, data) {
+      commit('setDrawingData', data);
     },
   },
 });
