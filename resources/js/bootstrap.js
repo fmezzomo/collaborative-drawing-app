@@ -13,9 +13,3 @@ window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 import './echo';
-
-window.Echo.channel('drawing')
-.listen('DrawingEvent', (event) => {
-    console.log('Event arrived:', event.tool);
-    store.dispatch('updateDrawingData', event);
-});

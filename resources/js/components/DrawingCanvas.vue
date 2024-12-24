@@ -19,7 +19,6 @@
 <script>
 import * as fabric from 'fabric';
 import { mapState } from 'vuex';
-
 function updateCanvas(data) {
     const canvas = new fabric.Canvas('drawingCanvas');
 }
@@ -28,6 +27,7 @@ function updateCanvas(data) {
 export default {
     data() {
         return {
+            clientId: this.generateUUID(),
             canvas: null,
             currentTool: 'draw',
             brushColor: 'black',
@@ -39,9 +39,9 @@ export default {
     },
     watch: {
         drawingData(newData) {
-        if (newData) {
-            this.handleDrawingEvent(newData);
-        }
+            if (newData) {
+                this.handleDrawingEvent(newData);
+            }
         },
     },
     mounted() {
@@ -50,14 +50,62 @@ export default {
 
         this.canvas.selection = true;
 
+        this.canvas.on('object:modified', (e) => {
+            const object = e.target;
+            this.sendCanvasUpdate(object);
+        });
+
+        this.canvas.on('object:added', (e) => {
+            const object = e.target;
+            this.sendCanvasUpdate(object);
+        });
+
         if (this.drawingData) {
             this.handleDrawingEvent(this.drawingData);
         }
+
+        Echo.channel('drawing').listen('DrawingEvent', (event) => {
+            if (event.origin !== this.clientId) { 
+                this.handleDrawingEvent(event);
+            }
+        });
     },
     methods: {
+        generateUUID() {
+            return Math.random().toString(36).substr(2, 9);
+        },
         handleDrawingEvent(event) {
             console.log('event received');
-            console.table(event);
+            this.setTool(event.tool);
+        },
+        addTool(tool) {
+            axios.post('/change-tool', { tool }).then(() => {
+                console.log('Sent to backend.');
+            });
+        },
+        sendCanvasUpdate(object) {
+            const data = {
+                id: object.id || null,
+                type: object.type,
+                left: object.left,
+                top: object.top,
+                width: object.width,
+                height: object.height,
+                scaleX: object.scaleX,
+                scaleY: object.scaleY,
+                angle: object.angle,
+                text: object.text || null,
+                fill: object.fill || null,
+                stroke: object.stroke || null,
+            };
+
+            axios.post('/update-drawing', {
+                tool: this.currentTool,
+                updateData : data,
+                origin: this.clientId,
+            }).then(() => {
+                console.log('Canvas update sent to server.');
+            });
         },
         setTool(tool) {
             this.currentTool = tool;
@@ -71,10 +119,6 @@ export default {
                 this.canvas.selection = true;
                 this.addRectangle();
             }
-
-            axios.post('/change-tool', { tool }).then(() => {
-                console.log('Sent to backend.');
-            });
         },
         addText() {
             const text = new fabric.Textbox('Type here!', {

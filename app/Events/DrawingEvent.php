@@ -13,13 +13,17 @@ class DrawingEvent implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $tool;
+    public $updateData;
+    public $origin;
 
     /**
      * Create a new event instance.
      */
-    public function __construct( $tool )
+    public function __construct( $tool, $updateData = null, $origin = null )
     {
-        $this->tool = $tool;
+        $this->tool       = $tool;
+        $this->updateData = $updateData;
+        $this->origin     = $origin;
     }
 
     /**
@@ -30,7 +34,7 @@ class DrawingEvent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('drawing'),
+            new Channel( 'drawing' ),
         ];
     }
 }
